@@ -443,6 +443,54 @@ def deindent(message: str) -> str:
     message = re.sub(r"^ {," + str(a) + "}", "", message, flags=re.MULTILINE)
     return message.strip()
 
+def ram_round(ram: float) -> int:
+    n = int(math.ceil(ram / 1024))
+    return n + 1 if n % 2 else n
+
+# These are the fields that are displayed when a search is run in verbose mode
+displayable_fields_verbose = (
+    # ("bw_nvlink", "Bandwidth NVLink", "{}", None, True),
+    ("id", "ID", "{}", None, True),
+    ("num_gpus", "N", "{}x", None, False),
+    ("total_flops", "TFLOPS", "{:.2f}", None, False),
+    ("gpu_name", "Model", "{}", None, True),
+    ("gpu_ram", "VRAM", "{}", ram_round, False),
+    ("gpu_total_ram", "VRAM_T", "{}", ram_round, False),
+    ("gpu_mem_bw", "GBW", "{:0.0f}", None, False),
+    ("gpu_max_power", "GPWR", "{:0.0f}", None, False),
+    ("pci_gen", "PGEN", "{}", None, False),
+    ("pcie_bw", "PBW", "{:0.1f}", None, False),
+    ("mobo_name", "mb_name", "{:.10s}", None, True),
+    ("cpu_name", "cpu_name", "{:.14s}", None, True),
+    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, False),
+    ("cpu_cores_effective", "vCPUs", "{:0.0f}", None, False),
+    ("cpu_ram", "RAM", "{}", ram_round, False),
+    ("disk_space", "Disk", "{:.0f}", None, False),
+    ("disk_bw", "DBW", "{:0.0f}", None, False),
+    ("disk_name", "DN", "{:.14s}", None, True),
+    ("inet_up", "Net_up", "{:0.0f}", None, False),
+    ("inet_down", "Net_down", "{:0.0f}", None, False),
+    ("direct_port_count", "ports", "{}", None, False),
+    ("score", "Score", "{:0.1f}", None, False),
+    ("dlperf", "DLP", "{:0.0f}", None, False),
+    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, False),
+    ("dph_total", "$/hr", "{:0.2f}", None, False),
+    ("min_bid", "b$/hr", "{:0.2f}", None, False),
+    ("storage_cost", "$/gb/M", "{:0.2f}", None, False),
+    ("vram_costperhour", "VR$/hr", "{:0.2f}", lambda x: x * 1024, False),
+    ("flops_per_dphtotal", "TF$/hr", "{:0.2f}", None, False),
+    ("inet_up_cost", "$/TBu", "{:0.2f}", lambda x: x * 1000, False),
+    ("inet_down_cost", "$/TBd", "{:0.2f}", lambda x: x * 1000, False),
+    ("driver_version", "NV Driver", "{}", None, True),
+    ("cuda_max_good", "CUDA", "{:0.1f}", None, True),
+    ("machine_id", "mach_id", "{}", None, True),
+    ("host_id", "host_id", "{}", None, True),
+    ("reliability", "R", "{:0.1f}", lambda x: x * 100, False),
+    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), False),
+    ("verification", "status", "{}", None, True),
+    ("geolocation", "country", "{}", lambda x: x.removeprefix(", "), True),
+   #  ("direct_port_count", "Direct Port Count", "{}", None, True),
+)
 
 # These are the fields that are displayed when a search is run
 displayable_fields = (
@@ -451,52 +499,25 @@ displayable_fields = (
     ("cuda_max_good", "CUDA", "{:0.1f}", None, True),
     ("num_gpus", "N", "{}x", None, False),
     ("gpu_name", "Model", "{}", None, True),
-    ("pcie_bw", "PCIE", "{:0.1f}", None, True),
-    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, True),
+    ("pcie_bw", "PCIE", "{:0.1f}", None, False),
+    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, False),
     ("cpu_cores_effective", "vCPUs", "{:0.1f}", None, True),
-    ("cpu_ram", "RAM", "{:0.1f}", lambda x: x / 1000, False),
-    ("disk_space", "Disk", "{:.0f}", None, True),
-    ("dph_total", "$/hr", "{:0.4f}", None, True),
-    ("dlperf", "DLP", "{:0.1f}", None, True),
-    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, True),
-    ("score", "score", "{:0.1f}", None, True),
+    ("cpu_ram", "RAM", "{}", ram_round, False),
+    ("disk_space", "Disk", "{:.0f}", None, False),
+    ("dph_total", "$/hr", "{:0.4f}", None, False),
+    ("dlperf", "DLP", "{:0.1f}", None, False),
+    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, False),
+    ("score", "score", "{:0.1f}", None, False),
     ("driver_version", "NV Driver", "{}", None, True),
-    ("inet_up", "Net_up", "{:0.1f}", None, True),
-    ("inet_down", "Net_down", "{:0.1f}", None, True),
-    ("reliability", "R", "{:0.1f}", lambda x: x * 100, True),
-    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), True),
+    ("inet_up", "Net_up", "{:0.1f}", None, False),
+    ("inet_down", "Net_down", "{:0.1f}", None, False),
+    ("reliability", "R", "{:0.1f}", lambda x: x * 100, False),
+    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), False),
     ("machine_id", "mach_id", "{}", None, True),
     ("verification", "status", "{}", None, True),
     ("host_id", "host_id", "{}", None, True),
-    ("direct_port_count", "ports", "{}", None, True),
-    ("geolocation", "country", "{}", None, True),
-   #  ("direct_port_count", "Direct Port Count", "{}", None, True),
-)
-
-displayable_fields_reserved = (
-    # ("bw_nvlink", "Bandwidth NVLink", "{}", None, True),
-    ("id", "ID", "{}", None, True),
-    ("cuda_max_good", "CUDA", "{:0.1f}", None, True),
-    ("num_gpus", "N", "{}x", None, False),
-    ("gpu_name", "Model", "{}", None, True),
-    ("pcie_bw", "PCIE", "{:0.1f}", None, True),
-    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, True),
-    ("cpu_cores_effective", "vCPUs", "{:0.1f}", None, True),
-    ("cpu_ram", "RAM", "{:0.1f}", lambda x: x / 1000, False),
-    ("disk_space", "Disk", "{:.0f}", None, True),
-    ("discounted_dph_total", "$/hr", "{:0.4f}", None, True),
-    ("dlperf", "DLP", "{:0.1f}", None, True),
-    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, True),
-    ("driver_version", "NV Driver", "{}", None, True),
-    ("inet_up", "Net_up", "{:0.1f}", None, True),
-    ("inet_down", "Net_down", "{:0.1f}", None, True),
-    ("reliability", "R", "{:0.1f}", lambda x: x * 100, True),
-    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), True),
-    ("machine_id", "mach_id", "{}", None, True),
-    ("verification", "status", "{}", None, True),
-    ("host_id", "host_id", "{}", None, True),
-    ("direct_port_count", "ports", "{}", None, True),
-    ("geolocation", "country", "{}", None, True),
+    ("direct_port_count", "ports", "{}", None, False),
+    ("geolocation", "country", "{}", lambda x: x.removeprefix(", "), True),
    #  ("direct_port_count", "Direct Port Count", "{}", None, True),
 )
 
@@ -528,22 +549,31 @@ vol_offers_fields = {
 
 
 vol_displayable_fields = (
+displayable_fields_reserved = (
+    # ("bw_nvlink", "Bandwidth NVLink", "{}", None, True),
     ("id", "ID", "{}", None, True),
     ("cuda_max_good", "CUDA", "{:0.1f}", None, True),
-    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, True),
-    ("disk_bw", "Disk B/W", "{:0.1f}", None, True),
-    ("disk_space", "Disk", "{:.0f}", None, True),
-    ("disk_name", "Disk Name", "{}", None, True),
-    ("storage_cost", "$/Gb/Month", "{:.2f}", None, True),
+    ("num_gpus", "N", "{}x", None, False),
+    ("gpu_name", "Model", "{}", None, True),
+    ("pcie_bw", "PCIE", "{:0.1f}", None, False),
+    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, False),
+    ("cpu_cores_effective", "vCPUs", "{:0.1f}", None, False),
+    ("cpu_ram", "RAM", "{}", ram_round, False),
+    ("disk_space", "Disk", "{:.0f}", None, False),
+    ("discounted_dph_total", "$/hr", "{:0.4f}", None, False),
+    ("dlperf", "DLP", "{:0.1f}", None, False),
+    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, False),
     ("driver_version", "NV Driver", "{}", None, True),
-    ("inet_up", "Net_up", "{:0.1f}", None, True),
-    ("inet_down", "Net_down", "{:0.1f}", None, True),
-    ("reliability", "R", "{:0.1f}", lambda x: x * 100, True),
-    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), True),
+    ("inet_up", "Net_up", "{:0.1f}", None, False),
+    ("inet_down", "Net_down", "{:0.1f}", None, False),
+    ("reliability", "R", "{:0.1f}", lambda x: x * 100, False),
+    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), False),
     ("machine_id", "mach_id", "{}", None, True),
     ("verification", "status", "{}", None, True),
     ("host_id", "host_id", "{}", None, True),
-    ("geolocation", "country", "{}", None, True),
+    ("direct_port_count", "ports", "{}", None, False),
+    ("geolocation", "country", "{}", lambda x: x.removeprefix(", "), True),
+   #  ("direct_port_count", "Direct Port Count", "{}", None, True),
 )
 
 # Need to add bw_nvlink, machine_id, direct_port_count to output.
@@ -3107,6 +3137,7 @@ def search__invoices(args):
     argument("-r", "--reserved", dest="type", const="reserved", action="store_const", help="Alias for --type=reserved"),
     argument("-d", "--on-demand", dest="type", const="on-demand", action="store_const", help="Alias for --type=on-demand"),
     argument("-n", "--no-default", action="store_true", help="Disable default query"),
+    argument("-v", "--verbose", action="store_true", help="Display even more fields in a slightly different order"),
     argument("--new", action="store_true", help="New search exp"),
     argument("--limit", type=int, help=""),
     argument("--disable-bundling", action="store_true", help="Deprecated"),
@@ -3317,6 +3348,8 @@ def search__offers(args):
     else:
         if args.type == "reserved":           
             display_table(rows, displayable_fields_reserved)
+        elif args.verbose:
+            display_table(rows, displayable_fields_verbose)
         else:
             display_table(rows, displayable_fields)
 
