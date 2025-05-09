@@ -429,6 +429,60 @@ def deindent(message: str) -> str:
     message = re.sub(r"^ {," + str(a) + "}", "", message, flags=re.MULTILINE)
     return message.strip()
 
+def ram_round(ram: float) -> int:
+    n = int(math.ceil(ram / 1024))
+    return n + 1 if n % 2 else n
+
+# These are the fields that are displayed when a search is run in verbose mode
+displayable_fields_verbose = (
+    # ("bw_nvlink", "Bandwidth NVLink", "{}", None, True),
+    ("id", "ID", "{}", None, True),
+    ("num_gpus", "N", "{}x", None, False),
+    ("total_flops", "TFLOPS", "{:.2f}", None, False),
+    ("gpu_name", "Model", "{}", None, True),
+    ("gpu_ram", "VR", "{}", ram_round, False),
+    ("gpu_total_ram", "VR_T", "{}", ram_round, False),
+    ("gpu_mem_bw", "GBW", "{}", None, False),
+    ("gpu_max_power", "GPWR", "{:0.0f}", None, False),
+    ("pci_gen", "PGN", "{}", None, False),
+    ("pcie_bw", "PBW", "{:0.1f}", None, False),
+    ("cpu_ghz", "ghz", "{:0.1f}", None, False),
+    ("cpu_cores_effective", "cpu", "{:0.0f}", None, False),
+    ("cpu_ram", "RAM", "{}", ram_round, False),
+    ("disk_space", "Disk", "{:.0f}", None, False),
+    ("disk_bw", "DBW", "{:0.0f}", None, False),
+    ("inet_up", "N_up", "{:0.0f}", None, False),
+    ("inet_down", "N_dn", "{:0.0f}", None, False),
+    ("direct_port_count", "ports", "{}", None, False),
+    ("score", "Score", "{:0.1f}", None, False),
+    ("dlperf", "DLP", "{:0.0f}", None, False),
+    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", lambda x: round(x, 2), False),
+    ("dlperf_per_bdphtotal", "DLP/b$", "{:0.2f}", lambda x: round(x, 2), False),
+    ("dph_total", "$/hr", "{:0.2f}", lambda x: round(x, 2), False),
+    ("min_bid", "b$/hr", "{:0.2f}", lambda x: round(x, 2), False),
+    ("storage_cost", "$/gbM", "{:0.2f}", lambda x: round(x, 2), False),
+    ("vram_costperhour", "VR/$", "{:0.2f}", lambda x: round(x, 2), False),
+    ("flops_per_dphtotal", "TF/$", "{:0.2f}", lambda x: round(x, 2), False),
+    ("inet_up_cost", "$/TBu", "{:0.2f}", lambda x: round(x * 1000, 2), False),
+    ("inet_down_cost", "$/TBd", "{:0.2f}", lambda x: round(x * 1000, 2), False),
+    ("driver_version", "NV Driver", "{}", None, True),
+    ("cuda_max_good", "CUDA", "{:0.1f}", None, True),
+    ("machine_id", "mach_id", "{}", None, True),
+    ("host_id", "host_id", "{}", None, True),
+    ("reliability", "R", "{:0.1f}", lambda x: x * 100, False),
+#    ("rentable", "A", "{:1.1s}", lambda x: 'Y' if x else 'N', True),
+    ("duration", "Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), False),
+    ("verification", "status", "{}", None, True),
+    ("geolocation", "country", "{}", lambda x: x.removeprefix(", "), True),
+   #  ("direct_port_count", "Direct Port Count", "{}", None, True),
+)
+displayable_fields_verbose_extra = (
+    displayable_fields_verbose[:10] + (
+    ("mobo_name", "mb_name", "{:.12s}", None, True),
+    ("cpu_name", "cpu_name", "{:.20s}", None, True),
+    ("disk_name", "disk_name", "{:.20s}", None, True),
+    ) + displayable_fields_verbose[10:]
+)
 
 # These are the fields that are displayed when a search is run
 displayable_fields = (
@@ -437,25 +491,25 @@ displayable_fields = (
     ("cuda_max_good", "CUDA", "{:0.1f}", None, True),
     ("num_gpus", "N", "{}x", None, False),
     ("gpu_name", "Model", "{}", None, True),
-    ("pcie_bw", "PCIE", "{:0.1f}", None, True),
-    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, True),
+    ("pcie_bw", "PCIE", "{:0.1f}", None, False),
+    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, False),
     ("cpu_cores_effective", "vCPUs", "{:0.1f}", None, True),
-    ("cpu_ram", "RAM", "{:0.1f}", lambda x: x / 1000, False),
-    ("disk_space", "Disk", "{:.0f}", None, True),
-    ("dph_total", "$/hr", "{:0.4f}", None, True),
-    ("dlperf", "DLP", "{:0.1f}", None, True),
-    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, True),
-    ("score", "score", "{:0.1f}", None, True),
+    ("cpu_ram", "RAM", "{}", ram_round, False),
+    ("disk_space", "Disk", "{:.0f}", None, False),
+    ("dph_total", "$/hr", "{:0.4f}", lambda x: round(x, 4), False),
+    ("dlperf", "DLP", "{:0.1f}", None, False),
+    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", lambda x: round(x, 2), False),
+    ("score", "score", "{:0.1f}", None, False),
     ("driver_version", "NV Driver", "{}", None, True),
-    ("inet_up", "Net_up", "{:0.1f}", None, True),
-    ("inet_down", "Net_down", "{:0.1f}", None, True),
-    ("reliability", "R", "{:0.1f}", lambda x: x * 100, True),
-    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), True),
+    ("inet_up", "Net_up", "{:0.1f}", None, False),
+    ("inet_down", "Net_down", "{:0.1f}", None, False),
+    ("reliability", "R", "{:0.1f}", lambda x: x * 100, False),
+    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), False),
     ("machine_id", "mach_id", "{}", None, True),
     ("verification", "status", "{}", None, True),
     ("host_id", "host_id", "{}", None, True),
-    ("direct_port_count", "ports", "{}", None, True),
-    ("geolocation", "country", "{}", None, True),
+    ("direct_port_count", "ports", "{}", None, False),
+    ("geolocation", "country", "{}", lambda x: x.removeprefix(", "), True),
    #  ("direct_port_count", "Direct Port Count", "{}", None, True),
 )
 
@@ -465,24 +519,24 @@ displayable_fields_reserved = (
     ("cuda_max_good", "CUDA", "{:0.1f}", None, True),
     ("num_gpus", "N", "{}x", None, False),
     ("gpu_name", "Model", "{}", None, True),
-    ("pcie_bw", "PCIE", "{:0.1f}", None, True),
-    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, True),
-    ("cpu_cores_effective", "vCPUs", "{:0.1f}", None, True),
-    ("cpu_ram", "RAM", "{:0.1f}", lambda x: x / 1000, False),
-    ("disk_space", "Disk", "{:.0f}", None, True),
-    ("discounted_dph_total", "$/hr", "{:0.4f}", None, True),
-    ("dlperf", "DLP", "{:0.1f}", None, True),
-    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, True),
+    ("pcie_bw", "PCIE", "{:0.1f}", None, False),
+    ("cpu_ghz", "cpu_ghz", "{:0.1f}", None, False),
+    ("cpu_cores_effective", "vCPUs", "{:0.1f}", None, False),
+    ("cpu_ram", "RAM", "{}", ram_round, False),
+    ("disk_space", "Disk", "{:.0f}", None, False),
+    ("discounted_dph_total", "$/hr", "{:0.4f}", None, False),
+    ("dlperf", "DLP", "{:0.1f}", None, False),
+    ("dlperf_per_dphtotal", "DLP/$", "{:0.2f}", None, False),
     ("driver_version", "NV Driver", "{}", None, True),
-    ("inet_up", "Net_up", "{:0.1f}", None, True),
-    ("inet_down", "Net_down", "{:0.1f}", None, True),
-    ("reliability", "R", "{:0.1f}", lambda x: x * 100, True),
-    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), True),
+    ("inet_up", "Net_up", "{:0.1f}", None, False),
+    ("inet_down", "Net_down", "{:0.1f}", None, False),
+    ("reliability", "R", "{:0.1f}", lambda x: x * 100, False),
+    ("duration", "Max_Days", "{:0.1f}", lambda x: x / (24.0 * 60.0 * 60.0), False),
     ("machine_id", "mach_id", "{}", None, True),
     ("verification", "status", "{}", None, True),
     ("host_id", "host_id", "{}", None, True),
-    ("direct_port_count", "ports", "{}", None, True),
-    ("geolocation", "country", "{}", None, True),
+    ("direct_port_count", "ports", "{}", None, False),
+    ("geolocation", "country", "{}", lambda x: x.removeprefix(", "), True),
    #  ("direct_port_count", "Direct Port Count", "{}", None, True),
 )
 
@@ -499,7 +553,7 @@ instance_fields = (
     ("gpu_name", "Model", "{}", None, True),
     ("gpu_util", "Util. %", "{:0.1f}", None, True),
     ("cpu_cores_effective", "vCPUs", "{:0.1f}", None, True),
-    ("cpu_ram", "RAM", "{:0.1f}", lambda x: x / 1000, False),
+    ("cpu_ram", "RAM", "{:0.1f}", ram_round, False),
     ("disk_space", "Storage", "{:.0f}", None, True),
     ("ssh_host", "SSH Addr", "{}", None, True),
     ("ssh_port", "SSH Port", "{}", None, True),
@@ -682,9 +736,9 @@ offers_alias = {
 }
 
 offers_mult = {
-    "cpu_ram": 1000,
-    "gpu_ram": 1000,
-    "gpu_total_ram" : 1000,
+    "cpu_ram": 1024,
+    "gpu_ram": 1024,
+    "gpu_total_ram" : 1024,
     "duration": 24.0 * 60.0 * 60.0,
 }
 
@@ -2896,6 +2950,8 @@ def search__invoices(args):
     argument("-r", "--reserved", dest="type", const="reserved", action="store_const", help="Alias for --type=reserved"),
     argument("-d", "--on-demand", dest="type", const="on-demand", action="store_const", help="Alias for --type=on-demand"),
     argument("-n", "--no-default", action="store_true", help="Disable default query"),
+    argument("-v", "--verbose", action="count", help="Display even more fields in a slightly different order"),
+    argument("-a", "--all", action="count", help="Show all hosts verified and unverified, and anything rentable regardless of rented status"),
     argument("--new", action="store_true", help="New search exp"),
     argument("--limit", type=int, help=""),
     argument("--disable-bundling", action="store_true", help="Deprecated"),
@@ -3005,6 +3061,8 @@ def search__offers(args):
 
         if args.no_default:
             query = {}
+        elif args.all:
+            query = {"external": {"eq": False}, "rentable": {"eq": True}}
         else:
             query = {"verified": {"eq": True}, "external": {"eq": False}, "rentable": {"eq": True}, "rented": {"eq": False}}
             #query = {"verified": {"eq": True}, "external": {"eq": False}, "rentable": {"eq": True} }
@@ -3056,17 +3114,17 @@ def search__offers(args):
         stime = time.time()
 
         if (args.explain):
-            print("request json: ")
-            print(json_blob)
+            print("request json: ", file=sys.stderr)
+            print(json_blob, file=sys.stderr)
 
         r = http_put(args, url, headers=headers, json=json_blob)
         etime = time.time()
-        print(f"request took {etime-stime}s")
+        print(f"request took {etime-stime}s", file=sys.stderr)
 
     else:
         if (args.explain):
-            print("request json: ")
-            print(json_blob)
+            print("request json: ", file=sys.stderr)
+            print(json_blob, file=sys.stderr)
         #url = apiurl(args, "/bundles", {"q": query})
         #r = requests.get(url, headers=headers)
         url = apiurl(args, "/bundles/")
@@ -3100,11 +3158,45 @@ def search__offers(args):
                 new_rows.append(row)
         rows = new_rows
 
+    if args.all:
+        new_rows  = []
+        for row in rows:
+            if "verification" in row and row["verification"] == "deverified":
+                new_rows.append(row) if args.all > 1 else None
+            else:
+                new_rows.append(row)
+        rows = new_rows
+
+    # XXX: Make VRAM cost per hour more useful (i.e. how much VRAM per dph instead)
+    for row in rows:
+        if "vram_costperhour" in row:
+            # vram_costperhour is also based off of the non-bid price, even if
+            # big/interruptible is specified. Fix this.
+            if args.type == 'bid' and row["gpu_total_ram"] > 0:
+                row["vram_costperhour"] = row["min_bid"] / ram_round(row["gpu_total_ram"])
+
+            row["vram_costperhour"] = 1.0 / row["vram_costperhour"]
+        if "gpu_mem_bw" in row:
+            gpu_mem_bw = str(int(row["gpu_mem_bw"]))
+            if "bw_nvlink" in row and row["bw_nvlink"]:
+                gpu_mem_bw = f"*{gpu_mem_bw}"
+            row["gpu_mem_bw"] = gpu_mem_bw
+
+    # Synthesize DLP per bid $/hr
+    for row in rows:
+        if "dlperf" in row and "min_bid" in row and row["min_bid"] is not None:
+            row["dlperf_per_bdphtotal"] = row["dlperf"] / row["min_bid"]
+
     if args.raw:
         return rows
     else:
-        if args.type == "reserved":           
+        if args.type == "reserved":
             display_table(rows, displayable_fields_reserved)
+        elif args.verbose:
+            if args.verbose > 1:
+                display_table(rows, displayable_fields_verbose_extra)
+            else:
+                display_table(rows, displayable_fields_verbose)
         else:
             display_table(rows, displayable_fields)
 
